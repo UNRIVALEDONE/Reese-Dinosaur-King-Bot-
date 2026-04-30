@@ -448,3 +448,20 @@ client.once("ready", () => {
 
 // ---------------- LOGIN ----------------
 client.login(process.env.TOKEN);
+
+client.on("interactionCreate", async (interaction) => {
+    if (!interaction.isChatInputCommand()) return;
+
+    if (interaction.commandName === "ping") {
+        return interaction.reply("🏓 pong!");
+    }
+
+    if (interaction.commandName === "starter") {
+        return interaction.reply({
+            content:
+                "🦖 choose your starter:\n" +
+                "ace, paris, chomp, spiny, tank, terry\n\n" +
+                "use: /starter <name>",
+        });
+    }
+});

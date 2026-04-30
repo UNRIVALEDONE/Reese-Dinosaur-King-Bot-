@@ -442,3 +442,26 @@ export default {
     }
 };
 
+// 1. Check if they provided an argument
+if (!args[0]) {
+    return message.reply(
+        "choose your starter:\n" +
+        Object.keys(starters).map(k => `• ${k}`).join("\n") +
+        "\n\nuse: !starter <name>"
+    );
+}
+
+// 2. Normalize the input (so "Ace", "ACE", and "ace" all work)
+const choice = args[0].toLowerCase();
+const selectedDino = starters[choice];
+
+// 3. Handle cases where they typed something that ISN'T in your list
+if (!selectedDino) {
+    return message.reply("I don't recognize that dinosaur! Check your spelling and try again.");
+}
+
+// 4. Send the result
+return message.channel.send({
+    content: `You chose **${selectedDino.name}**!`,
+    files: [selectedDino.image] 
+});

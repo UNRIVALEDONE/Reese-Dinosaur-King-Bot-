@@ -382,3 +382,69 @@ try {
 
 export default TitanBot;
 
+import { Client, GatewayIntentBits, Collection } from "discord.js";
+import fs from "fs";
+import path from "path";
+
+const client = new Client({
+    intents: [
+        GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.MessageContent
+    ]
+});
+
+client.commands = new Collection();
+
+// ---------------- LOAD COMMANDS ----------------
+const commandsPath = path.join(process.cwd(), "src/commands");
+
+function loadCommands(dir) {
+    const files = fs.readdirSync(dir, { withFileTypes: true });
+
+    for (const file of files) {
+        const fullPath = path.join(dir, file.name);
+
+        if (file.isDirectory()) {
+            loadCommands(fullPath);
+        } else if (file.name.endsWith(".js")) {
+            import(fullPath).then((cmd) => {
+                if (cmd.default?.name) {
+                    client.commands.set(cmd.default.name, cmd.default);
+                }
+            });
+        }
+    }
+}
+
+loadCommands(commandsPath);
+
+// ---------------- MESSAGE HANDLER ----------------
+client.on("messageCreate", async (message) => {
+    if (message.author.bot) return;
+
+    const prefix = "!";
+
+    if (!message.content.startsWith(prefix)) return;
+
+    const args = message.content.slice(prefix.length).trim().split(/ +/);
+    const commandName = args.shift().toLowerCase();
+
+    const command = client.commands.get(commandName);
+    if (!command) return;
+
+    try {
+        await command.execute(message, args, client);
+    } catch (err) {
+        console.error(err);
+        message.reply("💀 something broke in the dinosaur system");
+    }
+});
+
+// ---------------- READY ----------------
+client.once("ready", () => {
+    console.log(`🦖 Dinosaur King online as ${client.user.tag}`);
+});
+
+// ---------------- LOGIN ----------------
+client.login(process.env.TOKEN);
